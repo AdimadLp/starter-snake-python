@@ -1,13 +1,14 @@
 import logging
 import os
 import typing
-
+import time
 from flask import Flask
 from flask import request
 
 
 def run_server(handlers: typing.Dict):
     app = Flask("Battlesnake")
+    time.sleep(1)
 
     @app.get("/")
     def on_info():
