@@ -24,38 +24,20 @@ LENGTH_ADVANTAGE_THRESHOLD = (
 
 
 def info() -> typing.Dict:
-    """
-    Returns basic information about the Battlesnake.
-
-    Returns:
-        dict: A dictionary containing the API version, author, color, head, and tail type.
-    """
     return {
         "apiversion": "1",
         "author": "Gruppe 7",
-        "color": "#FF0000",
-        "head": "pixel",
-        "tail": "pixel",
+        "color": "#888888",
+        "head": "default",
+        "tail": "default",
     }
 
 
 def start(game_state: typing.Dict):
-    """
-    Called when a new game starts. Use this to initialize any game-start specific data.
-
-    Args:
-        game_state (dict): The current state of the game at the start.
-    """
     print("GAME START")
 
 
 def end(game_state: typing.Dict):
-    """
-    Called when the game ends. Use this for any cleanup or final analytics.
-
-    Args:
-        game_state (dict): The final state of the game.
-    """
     print("GAME OVER\n")
     print(f"Snake length: {len(game_state['you']['body'])}")
 
@@ -213,7 +195,7 @@ def seek_food(game_state: typing.Dict, safe_moves: list) -> str:
         if path_to_food:
             move = get_move_from_path(path_to_food, my_head)
             if move in safe_moves:
-                print("Seeking food...")
+                print("Seeking food")
                 return move
     return None
 
@@ -240,7 +222,7 @@ def chase_smaller_snake(game_state: typing.Dict, safe_moves: list) -> str:
             if path_to_tail:
                 move = get_move_from_path(path_to_tail, my_head)
                 if move in safe_moves:
-                    print("Chasing a smaller snake.")
+                    print("Chasing a smaller snake")
                     return move
     return None
 
@@ -253,13 +235,13 @@ def move(game_state: typing.Dict) -> typing.Dict:
         game_state (dict): The current game state.
 
     Returns:
-        dict: A dictionary containing the next move and an optional shout message.
+        dict: A dictionary containing the next move.
     """
     safe_moves = get_safe_moves(game_state)
 
     if not safe_moves:
         print("No safe moves. Making a random move")
-        return {"move": random.choice(POSSIBLE_MOVES), "shout": "No safe moves!"}
+        return {"move": random.choice(POSSIBLE_MOVES)}
 
     my_health = game_state["you"]["health"]
     my_length = len(game_state["you"]["body"])
@@ -277,16 +259,16 @@ def move(game_state: typing.Dict) -> typing.Dict:
     ):
         food_move = seek_food(game_state, safe_moves)
         if food_move:
-            return {"move": food_move, "shout": "Seeking food!"}
+            return {"move": food_move}
 
     # Try to chase a smaller snake if we're not prioritizing food
     chase_move = chase_smaller_snake(game_state, safe_moves)
     if chase_move:
-        return {"move": chase_move, "shout": "Chasing a smaller snake!"}
+        return {"move": chase_move}
 
     # If no specific strategy applies, make a random safe move
     print("Making a random safe move")
-    return {"move": random.choice(safe_moves), "shout": "Making a safe move!"}
+    return {"move": random.choice(safe_moves)}
 
 
 if __name__ == "__main__":
