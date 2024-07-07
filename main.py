@@ -9,7 +9,7 @@
 
 import random
 import typing
-from collections import deque
+import heapq
 from server import run_server
 
 # Important global variables
@@ -116,9 +116,13 @@ def get_safe_moves(game_state: typing.Dict) -> list:
     return safe_moves
 
 
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
 def find_path(start: tuple, goal: tuple, game_state: typing.Dict) -> list:
     """
-    Finds a path from start to goal using a breadth-first search algorithm.
+    Finds a path from start to goal using the A* algorithm.
 
     Args:
         start (tuple): The starting position (x, y).
@@ -128,19 +132,41 @@ def find_path(start: tuple, goal: tuple, game_state: typing.Dict) -> list:
     Returns:
         list: A list of coordinates representing the path, or None if no path is found.
     """
-    queue = deque([[start]])
-    seen = set([start])
 
-    while queue:
-        path = queue.popleft()
-        x, y = path[-1]
-        if (x, y) == goal:
-            return path
+    def get_neighbors(pos):
+        x, y = pos
         for dx, dy in DIRECTIONS.values():
-            x2, y2 = x + dx, y + dy
-            if (x2, y2) not in seen and is_safe(x2, y2, game_state):
-                queue.append(path + [(x2, y2)])
-                seen.add((x2, y2))
+            nx, ny = x + dx, y + dy
+            if is_safe(nx, ny, game_state):
+                yield (nx, ny)
+
+    heap = [(0, start)]
+    came_from = {}
+    g_score = {start: 0}
+    f_score = {start: manhattan_distance(start, goal)}
+
+    while heap:
+        current = heapq.heappop(heap)[1]
+
+        if current == goal:
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            return path[::-1]
+
+        for neighbor in get_neighbors(current):
+            tentative_g_score = g_score[current] + 1
+
+            if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + manhattan_distance(
+                    neighbor, goal
+                )
+                heapq.heappush(heap, (f_score[neighbor], neighbor))
+
     return None
 
 
