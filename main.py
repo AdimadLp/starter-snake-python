@@ -42,6 +42,10 @@ def end(game_state: typing.Dict):
     print(f"Snake length: {len(game_state['you']['body'])}")
 
 
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
 def is_safe(x: int, y: int, game_state: typing.Dict) -> bool:
     """
     Determines if a given position is safe for the snake to move to.
@@ -70,13 +74,13 @@ def is_safe(x: int, y: int, game_state: typing.Dict) -> bool:
     for snake in game_state["board"]["snakes"]:
         if snake["id"] != game_state["you"]["id"]:
             # Check body collision
-            if any(part["x"] == x and part["y"] == y for part in snake["body"][:-1]):
+            if any(manhattan_distance((part["x"], part["y"]), (x, y)) == 1 for part in snake["body"][:-1]):
                 return False
             # Check head-to-head collision
             if (
                 len(snake["body"]) >= len(my_body)
-                and abs(snake["body"][0]["x"] - x) + abs(snake["body"][0]["y"] - y)
-                == 1  # manhattan distance
+                and manhattan_distance((snake["body"][0]["x"], snake["body"][0]["y"]), (x, y))
+                == 1
             ):
                 return False
 
@@ -114,10 +118,6 @@ def get_safe_moves(game_state: typing.Dict) -> list:
             safe_moves.append(move)
 
     return safe_moves
-
-
-def manhattan_distance(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 def find_path(start: tuple, goal: tuple, game_state: typing.Dict) -> list:
@@ -210,8 +210,7 @@ def seek_food(game_state: typing.Dict, safe_moves: list) -> str:
     if food:
         closest_food = min(
             food,
-            key=lambda f: abs(f["x"] - my_head["x"])
-            + abs(f["y"] - my_head["y"]),  # manhattan distance
+            key=lambda f: manhattan_distance((f["x"], f["y"]), (my_head["x"], my_head["y"])),
         )
         path_to_food = find_path(
             (my_head["x"], my_head["y"]),
